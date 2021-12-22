@@ -2,74 +2,54 @@
 
 namespace Bosqu\RouteurPhp\Tests;
 
+
+require '../vendor/autoload.php';
+
+use Bosqu\RouteurPhp\Controller\HomeController;
 use PHPUnit\Framework\TestCase;
-use Bosqu\RouteurPhp\Route;
-use Bosqu\RouteurPhp\RouteAlreadyExistsException;
-use Bosqu\RouteurPhp\RouteNotFoundException;
-use Bosqu\RouteurPhp\Routeur;
-use Bosqu\RouteurPhp\Tests\Fixtures\FooController;
-use Bosqu\RouteurPhp\Tests\Fixtures\HomeController;
+use ReflectionClass;
+use ReflectionException;
 
 
 class RouteurTest extends TestCase
 {
-    public function test()
-    {
-        $router = new Routeur();
+    public function test() {
+        $page = "HomeController";
 
-        $routeHome = new Route("home", "/", [HomeController::class, "index"]);
+        if(isset($_GET['controller'])) {
 
-        $routeFoo = new Route("foo", "/foo/{bar}", [FooController::class, "bar"]);
+            $controller = "Bosqu\\RouteurPhp\\Controller\\" . $page;
 
-        $routeArticle = new Route("article", "/blog/{id}/{slug}", function (string $slug, string $id) {
-            return sprintf("%s : %s", $id, $slug);
-        });
+            if(class_exists($controller)) {
+                $controller = new $controller();
 
-        $router->add($routeHome);
-        $router->add($routeFoo);
-        $router->add($routeArticle);
+                if(isset($_GET['action'])) {
+                    $action = filter_var($_GET['action'], FILTER_SANITIZE_STRING);
 
-        $this->assertCount(3, $router->getRouteCollection());
+                    try {
+                        $reflexion =  new ReflectionClass($controller);
 
-        $this->assertContainsOnlyInstancesOf(Route::class, $router->getRouteCollection());
-
-        $this->assertEquals($routeHome, $router->get("home"));
-
-        $this->assertEquals($routeHome, $router->match("/"));
-        $this->assertEquals($routeArticle, $router->match("/blog/12/mon-article"));
-
-        $this->assertEquals("Hello world !", $router->call("/"));
-
-        $this->assertEquals(
-            "12 : mon-article",
-            $router->call("/blog/12/mon-article")
-        );
-
-        $this->assertEquals(
-            "bar",
-            $router->call("/foo/bar")
-        );
-    }
-
-    public function testIfRouteNotFoundByMatch()
-    {
-        $router = new Routeur();
-        $this->expectException(RouteNotFoundException::class);
-        $router->match("/");
-    }
-
-    public function testIfRouteNotFoundByGet()
-    {
-        $router = new Routeur();
-        $this->expectException(RouteNotFoundException::class);
-        $router->get("fail");
-    }
-
-    public function testIfRouteAlreadyExists()
-    {
-        $router = new Routeur();
-        $router->add(new Route("home", "/", function() {}));
-        $this->expectException(RouteAlreadyExistsException::class);
-        $router->add(new Route("home", "/", function() {}));
+                        if($reflexion->hasMethod($action)) {
+                            $controller->$action();
+                        }
+                        else {
+                            $controller->home();
+                        }
+                    }
+                    catch (ReflectionException $e) {
+                        echo $e->getMessage();
+                    };
+                }
+                else {
+                    (new $controller)->home();
+                }
+            }
+            else {
+                (new HomeController)->home();
+            }
+        }
+        else {
+            (new HomeController)->home();
+        }
     }
 }
