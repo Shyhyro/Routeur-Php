@@ -1,0 +1,26 @@
+{
+    "name": "bosqu/routeur-php",
+    "description": "Routeur",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Shyhyro",
+            "email": "Bosquet.laurie@outlook.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {
+            "Bosqu\\RouteurPhp\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Bosqu\\RouteurPhp\\Tests\\": "tests/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"
+    }
+}
